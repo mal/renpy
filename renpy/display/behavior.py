@@ -1135,7 +1135,9 @@ class Input(renpy.text.text.Text):  # @UndefinedVariable
             if i.endswith("color"):
                 caretprops[i] = properties[i]
 
-        self.caret = renpy.display.image.Solid(xmaximum=1, style=style, **caretprops)
+        self.caret = renpy.store.Fixed(renpy.display.anim.Animation(
+            renpy.display.image.Solid(xsize=1, style=style, **caretprops), 0.5,
+            renpy.display.layout.Null(xsize=1), 0.5), xsize=0, yfill=True)
         self.caret_pos = len(self.content)
         self.old_caret_pos = self.caret_pos
 
