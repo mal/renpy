@@ -65,6 +65,21 @@ def expand_outlines(l):
     return rv
 
 
+def expand_shaders(l):
+    rv = [ ]
+
+    for i in l:
+        if isinstance(i, renpy.shader.Shader):
+            rv.append(i)
+        elif len(i) == 1:
+            rv.append(renpy.easy.shader(i[0]))
+        else:
+            rv.append(renpy.easy.shader(i[0], **i[1]))
+
+    if rv:
+        return rv
+
+
 # Names for anchors.
 ANCHORS = dict(
     left=0.0,

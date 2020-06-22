@@ -116,6 +116,7 @@ class TransformState(renpy.object.Object):
     fit = None
     maxsize = None
     matrixcolor = None
+    shaders = None
 
     def __init__(self):
         self.alpha = 1
@@ -158,6 +159,7 @@ class TransformState(renpy.object.Object):
         self.maxsize = None
 
         self.matrixcolor = None
+        self.shaders = None
 
         self.delay = 0
 
@@ -213,6 +215,7 @@ class TransformState(renpy.object.Object):
         self.ytile = ts.ytile
 
         self.matrixcolor = ts.matrixcolor
+        self.shaders = ts.shaders
 
         self.last_angle = ts.last_angle
 
@@ -299,6 +302,7 @@ class TransformState(renpy.object.Object):
         diff2("ytile", newts.ytile, self.ytile)
 
         diff2("matrixcolor", newts.matrixcolor, self.matrixcolor)
+        diff2("shaders", newts.shaders, self.shaders)
 
         diff2("debug", newts.debug, self.debug)
         diff2("events", newts.events, self.events)

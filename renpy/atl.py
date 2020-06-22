@@ -96,6 +96,12 @@ def matrixcolor(x):
         return renpy.display.im.matrix(x)
 
 
+def shaders(x):
+    if not x:
+        return None
+    return tuple(renpy.easy.shader(s) for s in x)
+
+
 # A dictionary giving property names and the corresponding default
 # values.
 PROPERTIES = {
@@ -148,6 +154,7 @@ PROPERTIES = {
     "xtile" : int,
     "ytile" : int,
     "matrixcolor" : matrixcolor,
+    "shaders" : shaders
     }
 
 

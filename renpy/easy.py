@@ -26,6 +26,7 @@ from renpy.compat import *
 
 
 import renpy.display
+import renpy.shader
 import renpy.styledata
 import contextlib
 import time
@@ -206,6 +207,21 @@ def dynamic_image(d, scope=None, prefix=None, search=None):
             return displayable_or_none(rv, dynamic=False)
 
         return None
+
+
+def shader(name, **uniforms):
+    if not uniforms and isinstance(name, list, tuple):
+        name, unforms = name
+    if isinstance(name, renpy.shader.Shader):
+        if not uniforms:
+            return name
+        else:
+            props = {}
+            props.update(name.uniforms())
+            props.update(uniforms)
+            return renpy.shader.Shader(name, **props)
+
+    return renpy.shader.Shader(name, **uniforms)
 
 
 def predict(d):

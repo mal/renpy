@@ -193,6 +193,7 @@ style_properties = sorted_dict(
     ruby_style=None,
     size=None,
     size_group=None,
+    shaders='expand_shaders',
     slow_abortable=None,
     slow_cps=None,
     slow_cps_multiplier=None,

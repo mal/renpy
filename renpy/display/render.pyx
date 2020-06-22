@@ -284,6 +284,26 @@ cpdef render(d, object widtho, object heighto, double st, double at):
         if wh is not orig_wh:
             render_cache_d[orig_wh] = rv
 
+    if style.shaders:
+        parts = ()
+        uniforms = {'uRes0': (1. / rv.width, 1. / rv.height)}
+
+        for shader in style.shaders:
+            parts += (shader.name,)
+            uniforms.update(shader.uniforms())
+
+        if rv.shaders:
+            rv.shaders += parts
+        else:
+            rv.shaders = parts
+
+        if rv.uniforms:
+            rv.uniforms.update(uniforms)
+        else:
+            rv.uniforms = uniforms
+
+        rv.mesh = True
+
     renpy.plog(2, "end render {!r}", d)
 
     return rv

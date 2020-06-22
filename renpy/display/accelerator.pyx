@@ -357,6 +357,26 @@ def transform_render(self, widtho, heighto, st, at):
 
     rv = Render(width, height)
 
+    if state.shaders:
+        parts = ()
+        uniforms = {}
+
+        for shader in state.shaders:
+            parts += (shader.name,)
+            uniforms.update(shader.uniforms())
+
+        if rv.shaders:
+            rv.shaders += parts
+        else:
+            rv.shaders = parts
+
+        if rv.uniforms:
+            rv.uniforms.update(uniforms)
+        else:
+            rv.uniforms = uniforms
+
+        rv.mesh = True
+
     if state.matrixcolor:
         if rv.shaders:
             rv.shaders += ( "renpy.matrixcolor", )
