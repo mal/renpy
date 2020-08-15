@@ -1,0 +1,81 @@
+name: ci
+
+on:
+- pull_request
+- push
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [linux]
+        arch: [x86_64]
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: renpy/renpy-build
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: renpy
+
+    - uses: actions/cache@v2
+      with:
+        path: deps
+        key: deps-${{ hashFiles('.github/workflows/build.yml') }}
+
+    - name: Set up dependencies
+      run: |
+        mkdir -p deps
+        cd deps
+        wget -nc https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-4-r.1.zip || true
+        wget -nc https://ftp.gnu.org/gnu/binutils/binutils-2.33.1.tar.gz || true
+        wget -nc https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.gz || true
+        cd ../tars
+        ln -s ../deps/* .
+
+    - uses: actions/cache@v2
+      with:
+        path: tmp
+        key: build-${{ matrix.os }}-${{ matrix.arch }}
+
+    - name: Modify build scripts
+      run: |
+        case "${{ matrix.os }}" in
+          linux)
+            sed -i '/mingw-w64/d' prepare.sh
+            sed -i '/clang/d' prepare.sh
+            ;;
+          mac)
+            sed -i '/mingw-w64/d' prepare.sh
+            ;;
+          windows)
+            sed -i '/clang/d' prepare.sh
+            ;;
+        esac
+        sed -i '/renpy\/renpy/d' nightly/git.sh
+        sed -i '/build\.py/d' nightly/build.sh
+
+    - name: Prepare environment
+      run: |
+        sudo apt-get update
+        ./prepare.sh
+
+    - name: Build Ren'Py
+      run: |
+        . tmp/virtualenv.py2/bin/activate
+        ./build.py --arch ${{ matrix.arch }} --platform ${{ matrix.os }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: librenpython-${{ matrix.os }}-${{ matrix.arch }}
+        path: tmp/build/renpython.*/librenpython.so
+
+    - name: Clean up cache
+      run: |
+        sudo chown -Rf $(id -u):$(id -g) tmp
+        rm -rf tmp/build
