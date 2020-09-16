@@ -70,6 +70,45 @@ jobs:
         . tmp/virtualenv.py2/bin/activate
         ./build.py --arch ${{ matrix.arch }} --platform ${{ matrix.os }}
 
+    - name: Construct semantic version
+      id: version
+      run: |
+        cd renpy
+        git describe | awk -v FS=- -v OFS=- '
+          NF == 3 { split($1, v, "."); $1 = v[1] "." v[2] "." v[3] + 1 }
+          NF > 2  { $(NF-1) = $(NF-1) "+" $NF; --NF }
+          NF > 2  { $(NF-1) = $(NF-1) "." $NF; --NF }
+          { print "::set-output name=semver::" $0 }
+        '
+
+    - name: Package Ren'Py
+      run: |
+        cd renpy
+        rm -f lib rapt renios
+        ln -s lib2 lib
+        ln -s rapt2 rapt
+        ln -s renios2 renios
+
+        for lib in pygame_sdl2 live2d
+          do test -e ../$lib && ln -s ../$lib $lib
+        done
+
+        export RENPY_CYTHON=cython
+        export RENPY_DEPS_INSTALL=/usr::/usr/lib/x86_64-linux-gnu/
+        export RENPY_SIMPLE_EXCEPTIONS=1
+
+        export SDL_AUDIODRIVER=dummy
+        export SDL_VIDEODRIVER=dummy
+
+        ./renpy.sh tutorial quit
+
+        ./lib/linux-x86_64/python -O distribute.py \
+          "${{ steps.version.outputs.semver }}" \
+          --pygame ../pygame_sdl2 --fast
+
+    - name: List artifacts
+      run: sudo find renpy/dl -name 'renpy-*-sdk*' || true
+
     - uses: actions/upload-artifact@v2
       with:
         name: librenpython-${{ matrix.os }}-${{ matrix.arch }}
