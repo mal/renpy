@@ -185,6 +185,14 @@ def interpolate(t, a, b, type): # @ReservedAssignment
         else:
             return a
 
+    elif isinstance(b, renpy.color.Color):
+        if a is None or not isinstance(a, renpy.color.Color):
+            if t >= 1.0:
+                return b
+            else:
+                return a
+        return a.interpolate(b, t)
+
     # Recurse into tuples.
     elif isinstance(b, tuple):
         if a is None:
@@ -961,6 +969,10 @@ class RawMultipurpose(RawStatement):
                 raise Exception("ATL Property %s is unknown at runtime." % name)
 
             value = ctx.eval(expr)
+
+            if isinstance(value, basestring) and value[0] == '#':
+                value = renpy.easy.color(value)
+
             properties.append((name, value))
 
         splines = [ ]

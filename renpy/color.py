@@ -112,6 +112,7 @@ class Color(tuple):
     """
 
     _rgb = None
+    _rgba = None
     _hls = None
     _hsv = None
     _alpha = None
@@ -209,6 +210,15 @@ class Color(tuple):
                 )
 
         return self._rgb
+
+    @property
+    def rgba(self):
+        if self._rgba is None:
+            self._rgba = self.rgb + (
+                self[3] / 255.0,
+                )
+
+        return self._rgba
 
     @property
     def hls(self):

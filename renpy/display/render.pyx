@@ -1499,6 +1499,9 @@ cdef class Render:
         to the shaders that render this Render and its children.
         """
 
+        if isinstance(value, renpy.color.Color):
+            value = value.rgba
+
         if self.uniforms is None:
             self.uniforms = { name : value }
         else:
