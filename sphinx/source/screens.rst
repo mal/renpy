@@ -668,6 +668,9 @@ The input statement takes no parameters, and the following properties:
     A Python function that is called with what the user has typed,
     when the string changes.
 
+`caret_blink`
+    If True, the default caret will blink. Overrides :var:`config.input_caret_blink`.
+
 
 It also takes:
 
