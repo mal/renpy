@@ -984,6 +984,9 @@ load_failed_label = None
 equal_mono = True
 
 
+# Should the default input caret blink ?
+input_caret_blink = True
+
 del os
 del collections
 
