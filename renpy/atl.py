@@ -577,10 +577,18 @@ class ATLTransformBase(renpy.object.Object):
         if (self.atl_st_offset is None) or (st - self.atl_st_offset) < 0:
             self.atl_st_offset = st
 
-        if self.atl.animation:
+        if block.properties['animation']:
             timebase = at
         else:
             timebase = st - self.atl_st_offset
+
+        if timebase == 0:
+            skip = block.properties['skip']
+            if skip:
+                trans.st_offset += skip.skip
+                trans.at_offset += skip.skip
+
+                timebase += skip.skip
 
         action, arg, pause = block.execute(trans, timebase, self.atl_state, events)
 
@@ -687,24 +695,26 @@ class Statement(renpy.object.Object):
 
 class RawBlock(RawStatement):
 
-    # Should we use the animation timebase or the showing timebase?
-    animation = False
+    properties = { 'animation': False, 'skip': None }
 
-    def __init__(self, loc, statements, animation):
+    def __init__(self, loc, statements, properties):
 
         super(RawBlock, self).__init__(loc)
+
+        # A dict of properties that may contain RawStatements.
+        self.properties = dict(self.properties, **properties)
 
         # A list of RawStatements in this block.
         self.statements = statements
 
-        self.animation = animation
-
     def compile(self, ctx): # @ReservedAssignment
         compiling(self.loc)
 
-        statements = [ i.compile(ctx) for i in self.statements ]
+        properties = {k: v.compile(ctx) if isinstance(v, RawStatement) else v
+                      for k, v in self.properties.items()}
+        statements = [i.compile(ctx) for i in self.statements]
 
-        return Block(self.loc, statements)
+        return Block(self.loc, statements, properties)
 
     def predict(self, ctx):
         for i in self.statements:
@@ -713,6 +723,11 @@ class RawBlock(RawStatement):
     def mark_constant(self):
 
         constant = GLOBAL_CONST
+
+        for v in self.properties.values():
+            if isinstance(v, RawStatement):
+                v.mark_constant()
+                constant = min(constant, v.constant)
 
         for i in self.statements:
             i.mark_constant()
@@ -724,9 +739,14 @@ class RawBlock(RawStatement):
 # A compiled ATL block.
 class Block(Statement):
 
-    def __init__(self, loc, statements):
+    properties = { }
+
+    def __init__(self, loc, statements, properties):
 
         super(Block, self).__init__(loc)
+
+        # A dict of static values applicable to this block.
+        self.properties = properties
 
         # A list of statements in the block.
         self.statements = statements
@@ -1142,10 +1162,12 @@ class Interpolation(Statement):
 
         warper = warpers.get(self.warper, self.warper)
 
-        if trans.atl.animation:
+        if trans.atl.properties['animation']:
             st_or_at = trans.at
+            toffset = trans.at_offset
         else:
             st_or_at = trans.st
+            toffset = trans.st_offset
 
         # True if we want want to make sure this interpolation is shown for at
         # least one frame.
@@ -1153,11 +1175,13 @@ class Interpolation(Statement):
             first_frame = False
         elif state is not None:
             first_frame = False
+        elif st_or_at < toffset:
+            first_frame = False
         elif (self.duration == 0) and (not self.properties and not self.revolution and not self.splines):
             first_frame = True
         elif trans.atl_state is not None:
             first_frame = True
-        elif st_or_at == 0:
+        elif st_or_at == toffset:
             first_frame = True
         else:
             # This is the case when we're skipping through a displayable to
@@ -1485,6 +1509,31 @@ class Choice(Statement):
     def visit(self):
         return [ j for i in self.choices for j in i[1].visit() ]
 
+# The Skip statement.
+
+
+class RawSkip(RawStatement):
+
+    def __init__(self, loc, skip):
+
+        super(RawSkip, self).__init__(loc)
+        self.skip = skip
+
+    def compile(self, ctx): # @ReservedAssignment
+        compiling(self.loc)
+        return Skip(self.loc, ctx.eval(self.skip))
+
+    def mark_constant(self):
+        self.constant = is_constant_expr(self.skip)
+
+
+class Skip(Statement):
+
+    def __init__(self, loc, skip):
+        super(Skip, self).__init__(loc)
+
+        self.skip = skip
+
 # The Time statement.
 
 
@@ -1710,9 +1759,8 @@ def parse_atl(l):
     l.advance()
     block_loc = l.get_location()
 
+    properties = { }
     statements = [ ]
-
-    animation = False
 
     while not l.eob:
 
@@ -1813,7 +1861,13 @@ def parse_atl(l):
 
         elif l.keyword('animation'):
             l.expect_noblock('animation')
-            animation = True
+            properties['animation'] = True
+
+        elif l.keyword('skip'):
+            skip = l.require(l.simple_expression)
+            l.expect_noblock('skip')
+
+            properties['skip'] = RawSkip(loc, skip)
 
         else:
 
@@ -1966,4 +2020,4 @@ def parse_atl(l):
         merged.append(new)
         old = new
 
-    return RawBlock(block_loc, merged, animation)
+    return RawBlock(block_loc, merged, properties)
