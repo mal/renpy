@@ -1056,6 +1056,11 @@ class ImageButton(Button):
                  hovered=None,
                  **properties):
 
+        if renpy.config.prefer_defined_selected_images:
+            selected_hover_image = selected_hover_image or hover_image or selected_idle_image
+            selected_insensitive_image = selected_insensitive_image or insensitive_image or selected_idle_image
+            selected_activate_image = selected_activate_image or activate_image or selected_hover_image
+
         hover_image = hover_image or idle_image
         insensitive_image = insensitive_image or idle_image
         activate_image = activate_image or hover_image
