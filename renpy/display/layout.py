@@ -2232,48 +2232,43 @@ class AlphaMask(Container):
     which uses the mask's red channel.
     """
 
-    def __init__(self, child, mask, **properties):
+    invert = False
+
+    def __init__(self, child, mask, invert=False, **properties):
         super(AlphaMask, self).__init__(**properties)
 
         self.mask = renpy.easy.displayable(mask)
         self.add(self.mask)
         self.add(child)
-        self.null = None
+        self.invert = invert
 
     def visit(self):
         return [ self.mask, self.child ]
 
     def render(self, width, height, st, at):
+        if self.invert:
+            alpha = renpy.uguu.GL_ONE_MINUS_DST_ALPHA
+        else:
+            alpha = renpy.uguu.GL_DST_ALPHA
+
+        blend = (renpy.uguu.GL_FUNC_ADD, alpha, renpy.uguu.GL_ZERO,
+                 renpy.uguu.GL_FUNC_ADD, alpha, renpy.uguu.GL_ZERO)
 
         cr = renpy.display.render.render(self.child, width, height, st, at)
+        cr.add_property("blend_func", blend)
+
         w, h = cr.get_size()
 
         mr = renpy.display.render.Render(w, h)
         mr.place(self.mask, main=False)
 
-        if self.null is None:
-            self.null = Fixed()
-
-        nr = renpy.display.render.render(self.null, w, h, st, at)
-
         rv = renpy.display.render.Render(w, h)
 
-        rv.operation = renpy.display.render.IMAGEDISSOLVE
-        rv.operation_alpha = True
-        rv.operation_complete = 256.0 / (256.0 + 256.0)
-        rv.operation_parameter = 256
-
         rv.mesh = True
-        rv.add_shader("renpy.imagedissolve")
-        rv.add_uniform("u_renpy_dissolve_offset", 0)
-        rv.add_uniform("u_renpy_dissolve_multiplier", 1.0)
-        rv.add_property("mipmap", renpy.config.mipmap_dissolves if (self.style.mipmap is None) else self.style.mipmap)
+        rv.add_shader("renpy.texture")
 
+        mr.blit(cr, (0, 0))
         rv.blit(mr, (0, 0))
-        rv.blit(nr, (0, 0), focus=False, main=False)
-        rv.blit(cr, (0, 0))
-
-        self.offsets = [ (0, 0), (0, 0) ]
 
         return rv
 
