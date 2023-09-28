@@ -35,6 +35,10 @@ update_translations = "RENPY_UPDATE_TRANSLATIONS" in os.environ
 
 
 class Formatter(string.Formatter):
+    pass
+
+
+class LegacyFormatter(Formatter):
     """
     A string formatter that uses Ren'Py's formatting rules. Ren'Py uses
     square brackets to introduce formatting, and it supports a q conversion
@@ -220,7 +224,7 @@ class Formatter(string.Formatter):
 
 
 # The instance of Formatter we use.
-formatter = Formatter()
+formatter = LegacyFormatter()
 
 
 class MultipleDict(object):
