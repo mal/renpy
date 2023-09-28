@@ -353,7 +353,7 @@ class LegacyFormatter(Formatter):
 
 
 # The instance of Formatter we use.
-formatter = LegacyFormatter()
+formatter = Formatter()
 
 
 class MultipleDict(object):
