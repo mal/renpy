@@ -39,7 +39,54 @@ conv = py_conv + renpy_conv
 
 
 class Formatter(string.Formatter):
-    pass
+    def convert_field(self, value, conversion):
+        value, kwargs = value
+
+        if conversion is None:
+            return value
+
+        if not conversion:
+            raise ValueError("Conversion specifier can't be empty.")
+
+        if set(conversion) - set("rstqulci!"):
+            raise ValueError("Unknown symbols in conversion specifier, this must use only the \"rstqulci\".")
+
+        if "r" in conversion:
+            value = repr(value)
+            conversion = conversion.replace("r", "")
+        elif "s" in conversion:
+            value = str(value)
+            conversion = conversion.replace("s", "")
+
+        if not conversion:
+            return value
+
+        # All conversion symbols below assume we have a string.
+        if not isinstance(value, basestring):
+            value = str(value)
+
+        if "t" in conversion:
+            value = renpy.translation.translate_string(value)
+
+        if "i" in conversion:
+            try:
+                value = self.vformat(value, (), kwargs)
+            except RuntimeError: # PY3 RecursionError
+                raise ValueError("Substitution {!r} refers to itself in a loop.".format(value))
+
+        if "q" in conversion:
+            value = value.replace("{", "{{")
+
+        if "u" in conversion:
+            value = value.upper()
+
+        if "l" in conversion:
+            value = value.lower()
+
+        if "c" in conversion and value:
+            value = value[0].upper() + value[1:]
+
+        return value
 
 
 class LegacyFormatter(Formatter):
@@ -176,55 +223,6 @@ class LegacyFormatter(Formatter):
         obj, arg_used = super(Formatter, self).get_field(field_name, args, kwargs)
 
         return (obj, kwargs), arg_used
-
-    def convert_field(self, value, conversion):
-        value, kwargs = value
-
-        if conversion is None:
-            return value
-
-        if not conversion:
-            raise ValueError("Conversion specifier can't be empty.")
-
-        if set(conversion) - set("rstqulci!"):
-            raise ValueError("Unknown symbols in conversion specifier, this must use only the \"rstqulci\".")
-
-        if "r" in conversion:
-            value = repr(value)
-            conversion = conversion.replace("r", "")
-        elif "s" in conversion:
-            value = str(value)
-            conversion = conversion.replace("s", "")
-
-        if not conversion:
-            return value
-
-        # All conversion symbols below assume we have a string.
-        if not isinstance(value, basestring):
-            value = str(value)
-
-        if "t" in conversion:
-            value = renpy.translation.translate_string(value)
-
-        if "i" in conversion:
-            try:
-                value = self.vformat(value, (), kwargs)
-            except RuntimeError: # PY3 RecursionError
-                raise ValueError("Substitution {!r} refers to itself in a loop.".format(value))
-
-        if "q" in conversion:
-            value = value.replace("{", "{{")
-
-        if "u" in conversion:
-            value = value.upper()
-
-        if "l" in conversion:
-            value = value.lower()
-
-        if "c" in conversion and value:
-            value = value[0].upper() + value[1:]
-
-        return value
 
 
 # The instance of Formatter we use.
