@@ -39,6 +39,7 @@ conv = py_conv + renpy_conv
 
 
 class Formatter(string.Formatter):
+
     def convert_field(self, value, conversion):
         value, kwargs = value
 
@@ -48,15 +49,17 @@ class Formatter(string.Formatter):
         if not conversion:
             raise ValueError("Conversion specifier can't be empty.")
 
-        if set(conversion) - set("rstqulci!"):
-            raise ValueError("Unknown symbols in conversion specifier, this must use only the \"rstqulci\".")
+        conversion = set(conversion) - {'!'}
+
+        if conversion - set(conv):
+            raise ValueError("Unknown symbols in conversion specifier, this must use only the {!r}.".format(conv))
 
         if "r" in conversion:
             value = repr(value)
-            conversion = conversion.replace("r", "")
+            conversion = conversion.discard("r")
         elif "s" in conversion:
             value = str(value)
-            conversion = conversion.replace("s", "")
+            conversion = conversion.discard("s")
 
         if not conversion:
             return value
