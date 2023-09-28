@@ -33,6 +33,10 @@ import os
 
 update_translations = "RENPY_UPDATE_TRANSLATIONS" in os.environ
 
+py_conv = 'ars'
+renpy_conv = 'tiqulc'
+conv = py_conv + renpy_conv
+
 
 class Formatter(string.Formatter):
     pass
