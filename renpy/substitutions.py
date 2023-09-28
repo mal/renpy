@@ -39,6 +39,130 @@ conv = py_conv + renpy_conv
 
 
 class Formatter(string.Formatter):
+    """
+    A string formatter that uses Ren'Py's formatting rules. Ren'Py uses
+    square brackets to introduce formatting, and treats the contents in
+    the same manner as f-string substitutions in Python.
+    """
+
+    def parse(self, s):
+        """
+        Parses s according to Ren'Py string formatting rules. Returns a list
+        of (literal_text, expression, None, replacement) tuples, deviating from
+        the method we're overriding to allow us to leverage f-strings.
+        """
+
+        # States for the parse state machine.
+        LITERAL = 0
+        OPEN_BRACKET = 1
+        EXPRESSION = 3
+        CONVERSION = 4
+
+        # Set of known conversions
+        CONV_REN = renpy_conv
+        CONV_PY = py_conv
+
+        # The depth of brackets we've seen.
+        bracket_depth = 0
+
+        # The parts we've seen.
+        literal = ''
+        expression = ''
+        conv_ren = ''
+        conv_py = ''
+
+        state = LITERAL
+
+        for c in s:
+
+            if state == LITERAL:
+                if c == '[':
+                    state = OPEN_BRACKET
+                    continue
+                else:
+                    literal += c
+                    continue
+
+            elif state == OPEN_BRACKET:
+                if c == '[':
+                    literal += c
+                    state = LITERAL
+                    continue
+
+                else:
+                    expression = c
+                    state = EXPRESSION
+                    bracket_depth = 0
+                    continue
+
+            elif state == EXPRESSION:
+
+                if c == '[':
+                    bracket_depth += 1
+                    expression += c
+                    continue
+
+                elif c == ']':
+
+                    if bracket_depth:
+                        bracket_depth -= 1
+                        expression += c
+                        continue
+
+                    else:
+                        yield (literal, expression, '', None)
+                        state = LITERAL
+                        literal = ''
+                        expression = ''
+                        continue
+
+                elif c == '!' and not bracket_depth:
+                    state = CONVERSION
+                    conversion = ''
+                    continue
+
+                else:
+                    expression += c
+                    continue
+
+            elif state == CONVERSION:
+                if c == ']':
+                    if conv_py:
+                        expression += '!' + conv_py
+
+                    yield (literal, expression, '', conv_ren or None)
+                    state = LITERAL
+                    literal = ''
+                    expression = ''
+                    conv_ren = ''
+                    conv_py = ''
+                    continue
+
+                elif c in CONV_REN:
+                    conv_ren += c
+                    continue
+
+                elif c in CONV_PY:
+                    conv_py += c
+                    continue
+
+                else:
+                    expression += '!' + conv_ren + conv_py + c
+                    state = EXPRESSION
+                    conv_ren = ''
+                    conv_py = ''
+                    continue
+
+        if state != LITERAL:
+            raise Exception("String {0!r} ends with an open format operation.".format(s))
+
+        if literal:
+            yield (literal, None, None, None)
+
+    def get_field(self, expression, args, kwargs):
+        value = renpy.python.py_eval(f"f'{{{expression}}}'", {}, kwargs)
+
+        return (value, kwargs), None
 
     def convert_field(self, value, conversion):
         value, kwargs = value
