@@ -66,11 +66,10 @@ default persistent.skip_splashscreen = False
 
 # Lint options exposed in the launcher.
 default persistent.lint_options = {"--orphan-tl"}
-define lint_options = {
-    "--orphan-tl": _("Check for orphaned translations"),
-    "--builtins-parameters": _("Check for parameters that shadow builtins"),
-    "--words-char-count": _("Count words and characters for each speaking role")
-}
+define lint_options = (
+    ("--orphan-tl", _("Check for orphaned translations")),
+    ("--builtins-parameters", _("Check for parameters that shadow builtins")),
+    ("--words-char-count", _("Count words and characters for each speaking role")))
 
 init python:
     if not persistent.daily_update_check_once:
@@ -78,18 +77,17 @@ init python:
         persistent.daily_update_check = True
 
     # Remove any deprecated lint options.
-    persistent.lint_options &= lint_options.keys()
+    persistent.lint_options &= {k for k, _ in lint_options}
 
 
 default preference_tab = "general"
-define preference_tabs = {
-    "general" : _("General"),
-    "options" : _("Options"),
-    "theme" : _("Theme"),
-    "install" : _("Install Libraries"),
-    "actions" : _("Actions"),
-    "lint" : _("Lint"),
-    }
+define preference_tabs = (
+    ("general", _("General")),
+    ("options", _("Options")),
+    ("theme", _("Theme")),
+    ("install", _("Install Libraries")),
+    ("actions", _("Actions")),
+    ("lint", _("Lint")))
 
 screen preferences():
 
@@ -121,7 +119,7 @@ screen preferences():
 
                     add HALF_SPACER
 
-                    for i, l in preference_tabs.items():
+                    for i, l in preference_tabs:
                         textbutton l action SetVariable("preference_tab", i) style "l_list"
 
                 if preference_tab == "general":
@@ -342,7 +340,7 @@ screen preferences():
 
                             add HALF_SPACER
 
-                            for opt, name in lint_options.items():
+                            for opt, name in lint_options:
                                 textbutton name:
                                     style "l_checkbox"
                                     action ToggleSetMembership(persistent.lint_options, opt)
