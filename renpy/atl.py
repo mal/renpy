@@ -26,7 +26,7 @@ import random
 
 import renpy
 from renpy.pyanalysis import Analysis, NOT_CONST, GLOBAL_CONST
-from renpy.types import DualAngle, position
+from renpy.types import DualAngle, dualangle, position
 
 
 def compiling(loc):
@@ -1448,7 +1448,7 @@ class Interpolation(Statement):
         if anchorangles is not None:
             startangle, endangle = anchorangles[:2]
 
-            anchorangle = interpolate(complete, startangle, endangle, DualAngle.from_any)
+            anchorangle = interpolate(complete, startangle, endangle, dualangle)
             trans.state.anchorangle = anchorangle
 
         if anchorradii is not None:

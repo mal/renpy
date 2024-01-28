@@ -31,7 +31,7 @@ import math
 import renpy
 from renpy.display.layout import Container
 from renpy.display.accelerator import RenderTransform
-from renpy.types import DualAngle, absolute, any_object, bool_or_none, float_or_none, matrix, mesh, pixels, position
+from renpy.types import DualAngle, absolute, any_object, bool_or_none, dualangle, float_or_none, matrix, mesh, position
 
 class Camera(renpy.object.Object):
     """
@@ -1277,7 +1277,7 @@ ALIASES = {
     "alignaround" : (float, float),
     "align" : (position, position), # documented as (float, float)
     "anchor" : (position, position),
-    "anchorangle" : DualAngle.from_any,
+    "anchorangle" : dualangle,
     "anchoraround" : (position, position),
     "anchorradius" : position,
     "angle" : float,
