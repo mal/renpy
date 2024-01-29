@@ -28,7 +28,7 @@ from typing import Any
 import renpy
 import renpy.gl2.live2dmotion
 from renpy.gl2.gl2shadercache import register_shader
-from renpy.types import absolute
+from renpy.types import pixels
 
 try:
     import renpy.gl2.live2dmodel as live2dmodel
@@ -967,8 +967,8 @@ class Live2D(renpy.display.displayable.Displayable):
         zoom = self.zoom
 
         if zoom is None:
-            top = absolute.compute_raw(self.top, sh)
-            base = absolute.compute_raw(self.base, sh)
+            top = pixels(self.top, sh)
+            base = pixels(self.base, sh)
 
             size = max(base - top, 1.0)
 

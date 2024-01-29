@@ -30,6 +30,7 @@ import math
 
 import pygame_sdl2 as pygame
 import renpy
+from renpy.types import pixels
 
 
 def edgescroll_proportional(n):
@@ -668,13 +669,13 @@ class VPGrid(Viewport):
             yspacing = self.style.spacing
 
         if renpy.config.relative_spacing:
-            xspacing = renpy.display.layout.compute_raw(xspacing, width)
-            yspacing = renpy.display.layout.compute_raw(yspacing, height)
+            xspacing = pixels(xspacing, width)
+            yspacing = pixels(yspacing, height)
 
-        left_margin = renpy.display.layout.compute_raw(self.style.left_margin, width)
-        right_margin = renpy.display.layout.compute_raw(self.style.right_margin, width)
-        top_margin = renpy.display.layout.compute_raw(self.style.top_margin, height)
-        bottom_margin = renpy.display.layout.compute_raw(self.style.bottom_margin, height)
+        left_margin = pixels(self.style.left_margin, width)
+        right_margin = pixels(self.style.right_margin, width)
+        top_margin = pixels(self.style.top_margin, height)
+        bottom_margin = pixels(self.style.bottom_margin, height)
 
         rend = renpy.display.render.render(self.children[0], child_width, child_height, st, at)
         cw, ch = rend.get_size()

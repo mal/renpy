@@ -26,7 +26,7 @@ import renpy
 import math
 from renpy.display.matrix cimport Matrix
 from renpy.display.render cimport Render, Matrix2D, render
-from renpy.types import absolute
+from renpy.types import pixels
 
 from sdl2 cimport *
 from pygame_sdl2 cimport *
@@ -119,7 +119,7 @@ def relative(n, base, limit):
     while a float is interpreted as a fraction of the limit).
     """
 
-    return min(int(absolute.compute_raw(n, base)), limit)
+    return min(int(pixels(n, base)), limit)
 
 cdef class RenderTransform:
     """
@@ -403,11 +403,11 @@ cdef class RenderTransform:
         ysize = state.ysize
 
         if xsize is not None:
-            xsize = absolute.compute_raw(xsize, self.widtho if renpy.config.relative_transform_size else 1 )
+            xsize = pixels(xsize, self.widtho if renpy.config.relative_transform_size else 1)
             self.widtho = xsize
 
         if ysize is not None:
-            ysize = absolute.compute_raw(ysize, self.heighto if renpy.config.relative_transform_size else 1)
+            ysize = pixels(ysize, self.heighto if renpy.config.relative_transform_size else 1)
             self.heighto = ysize
 
         self.cr = render(child, self.widtho, self.heighto, st - self.transform.child_st_base, at)
@@ -762,7 +762,7 @@ cdef class RenderTransform:
                 manchory = height / 2.0
 
             else:
-                manchorx, manchory = map(absolute.compute_raw, state.matrixanchor, (width, height))
+                manchorx, manchory = map(pixels, state.matrixanchor, (width, height))
 
             m = Matrix.offset(-manchorx, -manchory, 0.0)
 
@@ -837,7 +837,7 @@ cdef class RenderTransform:
                 manchory = self.height / 2.0
 
             else:
-                manchorx, manchory = map(absolute.compute_raw, state.matrixanchor, (self.width, self.height))
+                manchorx, manchory = map(pixels, state.matrixanchor, (self.width, self.height))
 
             m = Matrix.offset(-manchorx, -manchory, 0.0)
             m = mt * m

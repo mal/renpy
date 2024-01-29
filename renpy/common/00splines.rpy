@@ -60,15 +60,15 @@ init -1500 python:
             self.initialized = None
 
         def init_values(self, sizes):
-            to_abs_ = absolute.compute_raw
+            pixels = renpy.types.pixels
 
             def coord_(c):
 
                 if len(c) == 2:
                     c = c + (0, 0)
 
-                return ( to_abs_(c[0], sizes[0]) - to_abs_(c[2], sizes[2]),
-                         to_abs_(c[1], sizes[1]) - to_abs_(c[3], sizes[3]) )
+                return ( pixels(c[0], sizes[0]) - pixels(c[2], sizes[2]),
+                         pixels(c[1], sizes[1]) - pixels(c[3], sizes[3]) )
 
             for p in self.points:
                 for i in range(1, len(p)):

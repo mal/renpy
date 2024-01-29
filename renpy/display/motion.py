@@ -319,6 +319,7 @@ class Revolver(object):
 
     def __call__(self, t, rect):
         absolute = renpy.types.absolute
+        pixels = renpy.types.pixels
 
         (w, h, cw, ch) = rect
 
@@ -328,7 +329,7 @@ class Revolver(object):
             if x is None:
                 x = 0
 
-            return absolute.compute_raw(x, r)
+            return pixels(x, r)
 
         if self.pos is None:
             pos = self.child.get_placement()

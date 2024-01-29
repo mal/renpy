@@ -31,7 +31,7 @@ import math
 import renpy
 from renpy.display.layout import Container
 from renpy.display.accelerator import RenderTransform
-from renpy.types import DualAngle, absolute, any_object, bool_or_none, dualangle, float_or_none, matrix, mesh, position
+from renpy.types import DualAngle, absolute, any_object, bool_or_none, dualangle, float_or_none, matrix, mesh, pixels, position
 
 class Camera(renpy.object.Object):
     """
@@ -229,7 +229,7 @@ class TransformState(renpy.object.Object):
         required.
         """
 
-        return float(absolute.compute_raw(value, available))
+        return float(pixels(value, available))
 
     def get_around(self):
         return (self.xaround, self.yaround)
@@ -1054,8 +1054,8 @@ class Transform(Container):
                 cw, ch = self.child_size
                 rw, rh = self.render_size
 
-                xanchor = absolute.compute_raw(xanchor, cw)
-                yanchor = absolute.compute_raw(yanchor, ch)
+                xanchor = pixels(xanchor, cw)
+                yanchor = pixels(yanchor, ch)
 
                 xanchor -= cw / 2.0
                 yanchor -= ch / 2.0
