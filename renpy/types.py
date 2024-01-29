@@ -146,10 +146,14 @@ class position(object):
         """
         If passed two parameters, takes them as an absolute and a relative.
         If passed only one parameter, converts it.
+        If passed only None, returns None.
         Using __new__ so that passing a position returns it unchanged.
         """
 
         if relative is None:
+            if absolute is None:
+                return None
+
             typ = type(absolute)
 
             if typ is cls:
@@ -305,9 +309,3 @@ def mesh(x):
         return x
 
     return bool(x)
-
-
-def position_or_none(x):
-    if x is None:
-        return None
-    return position(x)

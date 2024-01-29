@@ -26,7 +26,7 @@ import random
 
 import renpy
 from renpy.pyanalysis import Analysis, NOT_CONST, GLOBAL_CONST
-from renpy.types import DualAngle, position, position_or_none
+from renpy.types import DualAngle, position
 
 
 def compiling(loc):
@@ -103,16 +103,16 @@ def interpolate(t, a, b, typ):
 
     # Interpolate everything else.
     else:
-        if a is None:
-            a = 0
 
-        if typ in (position_or_none, position):
+        if typ is position:
             if renpy.config.mixed_position:
                 a = position(a)
                 b = position(b)
-                return a + t * (b - a)
             else:
                 typ = type(b)
+
+        if a is None:
+            a = typ(0)
 
         return typ(a + t * (b - a))
 
@@ -128,8 +128,8 @@ def interpolate_spline(t, spline, typ):
     if spline[0] is None:
         return spline[-1]
 
-    if renpy.config.mixed_position and typ in (position_or_none, position):
-        spline = [position_or_none(i) for i in spline]
+    if typ is position and renpy.config.mixed_position:
+        spline = [position(i) for i in spline]
 
     lenspline = len(spline)
 
@@ -1443,7 +1443,7 @@ class Interpolation(Statement):
 
         if radii is not None:
             startradius, endradius = radii
-            trans.state.radius = interpolate(complete, startradius, endradius, position_or_none)
+            trans.state.radius = interpolate(complete, startradius, endradius, position)
 
         if anchorangles is not None:
             startangle, endangle = anchorangles[:2]
@@ -1453,7 +1453,7 @@ class Interpolation(Statement):
 
         if anchorradii is not None:
             startradius, endradius = anchorradii
-            trans.state.anchorradius = interpolate(complete, startradius, endradius, position_or_none)
+            trans.state.anchorradius = interpolate(complete, startradius, endradius, position)
 
 
 
