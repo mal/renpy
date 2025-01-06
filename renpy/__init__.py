@@ -30,6 +30,42 @@ import os
 import types
 import site
 
+
+# This allows developers of Ren'Py to synlink a local libexec directory
+# to their build output and have them be prefered over those compiled
+# into librenpython.so. The value of RENPY_LIBEXEC should be the shared
+# object suffix, i.e. cpython-312-x86_64-linux-gnu
+if "RENPY_LIBEXEC" in os.environ:
+    import importlib.util
+
+    class LocalLibExecFinder:
+        def __init__(self, path):
+            self.path = path
+            self.ext = f'.{os.environ["RENPY_LIBEXEC"]}.so'
+
+        def find_spec(self, fullname, path=None, target=None, /):
+            if not fullname.startswith("renpy."):
+                return None
+
+            if fullname not in sys.builtin_module_names:
+                return None
+
+            name = fullname.split(".")
+            name[-1] += self.ext
+
+            path = os.path.join(self.path, *name)
+
+            if not os.path.exists(path):
+                return None
+
+            return importlib.util.spec_from_file_location(fullname, path)
+
+    sys.meta_path.insert(0, LocalLibExecFinder(
+        os.path.abspath(os.path.join(__file__, "../../libexec"))))
+
+    del LocalLibExecFinder
+
+
 # Set up the hook for any renpy __init__ modules to import binary modules from
 # a libexec directory if it available.
 # This is relevant only for development RenPy itself, when compiled binaries
