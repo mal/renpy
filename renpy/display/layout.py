@@ -432,6 +432,7 @@ class Grid(Container):
                  transpose=False,
                  style='grid',
                  allow_underfull=None,
+                 *,
                  right_to_left=False,
                  bottom_to_top=False,
                  **properties):
@@ -488,6 +489,12 @@ class Grid(Container):
         top_margin = compute_raw(self.style.top_margin, height)
         bottom_margin = compute_raw(self.style.bottom_margin, height)
 
+        # For convenience and speed.
+        cols = self.cols
+        rows = self.rows
+
+        children = self.children
+
         # Generates a gridmap list containing (col, row) tuples of intended position
         # for each child.
         gridmap = self.generate_gridmap()
@@ -498,12 +505,12 @@ class Grid(Container):
         renheight = height
 
         if self.style.xfill:
-            renwidth = (width - (self.cols - 1) * xspacing - left_margin - right_margin) // self.cols
+            renwidth = (width - (cols - 1) * xspacing - left_margin - right_margin) // cols
         if self.style.yfill:
-            renheight = (height - (self.rows - 1) * yspacing - top_margin - bottom_margin) // self.rows
+            renheight = (height - (rows - 1) * yspacing - top_margin - bottom_margin) // rows
 
-        renders = [render(child, renwidth, renheight, st, at) for child in self.children]
-        sizes = [r.get_size() for r in renders]
+        renders = [ render(i, renwidth, renheight, st, at) for i in children ]
+        sizes = [ i.get_size() for i in renders ]
 
         cwidth = 0
         cheight = 0
@@ -518,17 +525,16 @@ class Grid(Container):
         if self.style.yfill:
             cheight = renheight
 
-        width = cwidth * self.cols + xspacing * (self.cols - 1) + left_margin + right_margin
-        height = cheight * self.rows + yspacing * (self.rows - 1) + top_margin + bottom_margin
+        width = cwidth * cols + xspacing * (cols - 1) + left_margin + right_margin
+        height = cheight * rows + yspacing * (rows - 1) + top_margin + bottom_margin
 
         rv = renpy.display.render.Render(width, height)
 
         # List of offsets in the same order as self.children
         self.offsets = []
 
-        for i, child in enumerate(self.children):
+        for i, child in enumerate(children):
             col, row = gridmap[i]
-
             surf = renders[i]
 
             xpos = col * (cwidth + xspacing) + left_margin
@@ -568,11 +574,11 @@ class Grid(Container):
             self.add(null)
 
     def generate_gridmap(self):
-        row_order = list(range(self.rows))
+        row_order = range(self.rows)
         if self.bottom_to_top:
             row_order = row_order[::-1]
 
-        col_order = list(range(self.cols))
+        col_order = range(self.cols)
         if self.right_to_left:
             col_order = col_order[::-1]
 
@@ -580,8 +586,9 @@ class Grid(Container):
             intended_order = [(col, row) for col in col_order for row in row_order]
         else:
             intended_order = [(col, row) for row in row_order for col in col_order]
-        
+
         return intended_order
+
 
 class IgnoreLayers(Exception):
     """
