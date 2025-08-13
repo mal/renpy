@@ -2522,12 +2522,18 @@ class Interface(object):
         # Clear some events.
         pygame.event.clear((PERIODIC, TIMEEVENT, REDRAW))
 
+        # Ensure initialisation of loop variable.
+        ev = False
+
         # Accumulate relative mouse movement from otherwise obsolete events.
         global relx, rely
         for ev in pygame.event.get(pygame.MOUSEMOTION):
             xr, yr = ev.rel
             relx += xr
             rely += yr
+
+        # Update mouse time if any MOUSEMOTION events were accumulated.
+        if ev:
             self.mouse_event_time = get_time()
 
         # Add a single TIMEEVENT to the queue.
